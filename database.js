@@ -7,7 +7,24 @@ const { DatabaseSync } = require('node:sqlite');
 const path = require('node:path');
 const bcrypt = require('bcryptjs');
 
-const DB_PATH = path.join(__dirname, 'damodar2026.sqlite');
+const fs = require('node:fs');
+
+// On Vercel Serverless, the root filesystem is read-only. We copy the seed DB to /tmp if on Vercel.
+const isVercel = Boolean(process.env.VERCEL);
+let DB_PATH = path.join(__dirname, 'damodar2026.sqlite');
+
+if (isVercel) {
+  const tmpDb = '/tmp/damodar2026.sqlite';
+  if (!fs.existsSync(tmpDb) && fs.existsSync(DB_PATH)) {
+    try {
+      fs.copyFileSync(DB_PATH, tmpDb);
+    } catch (e) {
+      console.warn('Could not copy sqlite to /tmp:', e);
+    }
+  }
+  DB_PATH = tmpDb;
+}
+
 const db = new DatabaseSync(DB_PATH);
 
 // Enable foreign keys and WAL mode for reliability

@@ -1041,15 +1041,22 @@ app.get('/api/admin/export-csv', requireAdmin, (req, res) => {
   }
 });
 
-// Fallback to index.html for SPA client navigation
+// Fallback: only serve index.html for page routes (HTML navigation), never for missing static assets!
 app.use((req, res) => {
+  if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|json|woff2?|ttf|eot)$/i)) {
+    return res.status(404).send('Asset not found');
+  }
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`=======================================================`);
-  console.log(`🌸 FOLK Damodar Month 2026 Multi-User Chanting Tracker`);
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`=======================================================`);
-});
+// Start Server locally if run directly
+if (!process.env.VERCEL && require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`=======================================================`);
+    console.log(`🌸 FOLK Damodar Month 2026 Multi-User Chanting Tracker`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`=======================================================`);
+  });
+}
+
+module.exports = app;
